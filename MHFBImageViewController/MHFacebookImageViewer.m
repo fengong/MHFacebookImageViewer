@@ -36,7 +36,6 @@ static const CGFloat kMinImageScale = 1.0f;
     NSMutableArray *_gestures;
     CGPoint _panOrigin;
     BOOL _isAnimating;
-    BOOL _isDoneAnimating;
     BOOL _isLoaded;
 }
 
@@ -44,7 +43,6 @@ static const CGFloat kMinImageScale = 1.0f;
 @property(nonatomic,weak) UIViewController * rootViewController;
 @property(nonatomic,weak) UIViewController * viewController;
 @property(nonatomic,weak) UIView * blackMask;
-@property(nonatomic,weak) UIButton * doneButton;
 @property(nonatomic,weak) UIImageView * senderView;
 @property(nonatomic,assign) NSInteger imageIndex;
 @property(nonatomic,weak) UIImage * defaultImage;
@@ -71,7 +69,6 @@ static const CGFloat kMinImageScale = 1.0f;
 @synthesize blackMask = _blackMask;
 @synthesize closingBlock = _closingBlock;
 @synthesize openingBlock = _openingBlock;
-@synthesize doneButton = _doneButton;
 @synthesize senderView = _senderView;
 @synthesize imageIndex = _imageIndex;
 @synthesize superView = _superView;
@@ -86,9 +83,6 @@ static const CGFloat kMinImageScale = 1.0f;
     __scrollView.delegate = self;
     __scrollView.backgroundColor = [UIColor clearColor];
     [self addSubview:__scrollView];
-    [_doneButton addTarget:self
-                    action:@selector(close:)
-          forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void) setImageURL:(NSURL *)imageURL defaultImage:(UIImage*)defaultImage imageIndex:(NSInteger)imageIndex {
@@ -185,8 +179,6 @@ static const CGFloat kMinImageScale = 1.0f;
         if(_senderView.alpha!=1.0f)
             _senderView.alpha = 1.0f;
     }
-    // Hide the Done Button
-    [self hideDoneButton];
     __scrollView.bounces = NO;
     CGSize windowSize = _blackMask.bounds.size;
     CGPoint currentPoint = [panGesture translationInView:__scrollView];
@@ -229,7 +221,6 @@ static const CGFloat kMinImageScale = 1.0f;
 {
     _isAnimating = YES;
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self hideDoneButton];
         __imageView.clipsToBounds = YES;
         CGFloat screenHeight =  [[UIScreen mainScreen] bounds].size.height;
         CGFloat imageYCenterPosition = __imageView.frame.origin.y + __imageView.frame.size.height/2 ;
@@ -303,7 +294,6 @@ static const CGFloat kMinImageScale = 1.0f;
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
     _isAnimating = YES;
-    [self hideDoneButton];
     [self centerScrollViewContents];
 }
 
@@ -344,26 +334,8 @@ static const CGFloat kMinImageScale = 1.0f;
 
 #pragma mark - Showing of Done Button if ever Zoom Scale is equal to 1
 - (void)didSingleTap:(UITapGestureRecognizer*)recognizer {
-    if(_doneButton.superview){
-        [self hideDoneButton];
-    }else {
-        if(__scrollView.zoomScale == __scrollView.minimumZoomScale){
-            if(!_isDoneAnimating){
-                _isDoneAnimating = YES;
-                [self.viewController.view addSubview:_doneButton];
-                _doneButton.alpha = 0.0f;
-                [UIView animateWithDuration:0.2f delay:0.0f options:UIViewAnimationOptionAllowUserInteraction animations:^{
-                    _doneButton.alpha = 1.0f;
-                } completion:^(BOOL finished) {
-                    [self.viewController.view bringSubviewToFront:_doneButton];
-                    _isDoneAnimating = NO;
-                }];
-            }
-        }else if(__scrollView.zoomScale == __scrollView.maximumZoomScale) {
-            CGPoint pointInView = [recognizer locationInView:__imageView];
-            [self zoomInZoomOut:pointInView];
-        }
-    }
+    self.userInteractionEnabled = NO;
+    [self dismissViewController];
 }
 
 #pragma mark - Zoom in or Zoom out
@@ -385,22 +357,6 @@ static const CGFloat kMinImageScale = 1.0f;
     [__scrollView zoomToRect:rectToZoomTo animated:YES];
 }
 
-#pragma mark - Hide the Done Button
-- (void) hideDoneButton {
-    if(!_isDoneAnimating){
-        if(_doneButton.superview) {
-            _isDoneAnimating = YES;
-            _doneButton.alpha = 1.0f;
-            [UIView animateWithDuration:0.2f delay:0.0f options:UIViewAnimationOptionAllowUserInteraction animations:^{
-                _doneButton.alpha = 0.0f;
-            } completion:^(BOOL finished) {
-                _isDoneAnimating = NO;
-                [_doneButton removeFromSuperview];
-            }];
-        }
-    }
-}
-
 - (void)close:(UIButton *)sender {
     self.userInteractionEnabled = NO;
     [sender removeFromSuperview];
@@ -419,14 +375,12 @@ static const CGFloat kMinImageScale = 1.0f;
     UITableView * _tableView;
     UIView *_blackMask;
     UIImageView * _imageView;
-    UIButton * _doneButton;
     UIView * _superView;
 
     CGPoint _panOrigin;
     CGRect _originalFrameRelativeToScreen;
 
     BOOL _isAnimating;
-    BOOL _isDoneAnimating;
 
     UIStatusBarStyle _statusBarStyle;
 }
@@ -468,7 +422,6 @@ static const CGFloat kMinImageScale = 1.0f;
         imageViewerCell.openingBlock = _openingBlock;
         imageViewerCell.superView = _senderView.superview;
         imageViewerCell.senderView = _senderView;
-        imageViewerCell.doneButton = _doneButton;
         imageViewerCell.initialIndex = _initialIndex;
         imageViewerCell.statusBarStyle = _statusBarStyle;
         [imageViewerCell loadAllRequiredViews];
@@ -533,11 +486,6 @@ static const CGFloat kMinImageScale = 1.0f;
     _blackMask.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     [
      self.view insertSubview:_blackMask atIndex:0];
-
-    _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_doneButton setImageEdgeInsets:UIEdgeInsetsMake(-10, -10, -10, -10)];  // make click area bigger
-    [_doneButton setImage:[UIImage imageNamed:@"Done"] forState:UIControlStateNormal];
-    _doneButton.frame = CGRectMake(windowBounds.size.width - (51.0f + 9.0f),15.0f, 51.0f, 26.0f);
 }
 
 #pragma mark - Show
