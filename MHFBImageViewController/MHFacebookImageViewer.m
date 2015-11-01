@@ -24,7 +24,7 @@
 
 
 #import "MHFacebookImageViewer.h"
-#import "UIImageView+AFNetworking.h"
+//#import "UIImageView+AFNetworking.h"
 #import <objc/runtime.h>
 static const CGFloat kMinBlackMaskAlpha = 0.3f;
 static const CGFloat kMaxImageScale = 2.5f;
@@ -57,7 +57,8 @@ static const CGFloat kMinImageScale = 1.0f;
 @property(nonatomic) UIStatusBarStyle statusBarStyle;
 
 - (void) loadAllRequiredViews;
-- (void) setImageURL:(NSURL *)imageURL defaultImage:(UIImage*)defaultImage imageIndex:(NSInteger)imageIndex;
+//- (void) setImageURL:(NSURL *)imageURL defaultImage:(UIImage*)defaultImage imageIndex:(NSInteger)imageIndex;
+- (void) setImage:(UIImage *)image imageIndex:(NSInteger)imageIndex;
 
 @end
 
@@ -85,6 +86,47 @@ static const CGFloat kMinImageScale = 1.0f;
     [self addSubview:__scrollView];
 }
 
+- (void) setImage:(UIImage *)image imageIndex:(NSInteger)imageIndex {
+    _imageIndex = imageIndex;
+    _senderView.alpha = 0.0f;
+    if(!__imageView){
+        __imageView = [[UIImageView alloc]init];
+        [__scrollView addSubview:__imageView];
+        __imageView.contentMode = UIViewContentModeScaleAspectFill;
+    }
+    
+    [__scrollView setZoomScale:1.0f animated:YES];
+    [__imageView setImage:image];
+    __imageView.frame = [self centerFrameFromImage:__imageView.image];
+
+    
+    if(_imageIndex==_initialIndex && !_isLoaded){
+        __imageView.frame = _originalFrameRelativeToScreen;
+        [UIView animateWithDuration:0.4f delay:0.0f options:0 animations:^{
+            __imageView.frame = [self centerFrameFromImage:__imageView.image];
+            CGAffineTransform transf = CGAffineTransformIdentity;
+            // Root View Controller - move backward
+            _rootViewController.view.transform = CGAffineTransformScale(transf, 1.0f, 1.0f);
+            // Root View Controller - move forward
+            //                _viewController.view.transform = CGAffineTransformScale(transf, 1.05f, 1.05f);
+            _blackMask.alpha = 1;
+        }   completion:^(BOOL finished) {
+            if (finished) {
+                _isAnimating = NO;
+                _isLoaded = YES;
+                if(_openingBlock)
+                    _openingBlock();
+            }
+        }];
+        
+    }
+    __imageView.userInteractionEnabled = YES;
+    //        [self addPanGestureToView:__imageView];
+    [self addMultipleGesture];
+    
+}
+
+
 - (void) setImageURL:(NSURL *)imageURL defaultImage:(UIImage*)defaultImage imageIndex:(NSInteger)imageIndex {
     _imageIndex = imageIndex;
     _defaultImage = defaultImage;
@@ -100,14 +142,14 @@ static const CGFloat kMinImageScale = 1.0f;
         __block MHFacebookImageViewerCell * _justMeInsideTheBlock = self;
         __block UIScrollView * _scrollViewInsideBlock = __scrollView;
 
-        [__imageView setImageWithURLRequest:[NSURLRequest requestWithURL:imageURL] placeholderImage:defaultImage success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
-            [_scrollViewInsideBlock setZoomScale:1.0f animated:YES];
-            [_imageViewInTheBlock setImage:image];
-            _imageViewInTheBlock.frame = [_justMeInsideTheBlock centerFrameFromImage:_imageViewInTheBlock.image];
-
-        } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
-            NSLog(@"Image From URL Not loaded");
-        }];
+//        [__imageView setImageWithURLRequest:[NSURLRequest requestWithURL:imageURL] placeholderImage:defaultImage success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+//            [_scrollViewInsideBlock setZoomScale:1.0f animated:YES];
+//            [_imageViewInTheBlock setImage:image];
+//            _imageViewInTheBlock.frame = [_justMeInsideTheBlock centerFrameFromImage:_imageViewInTheBlock.image];
+//
+//        } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+//            NSLog(@"Image From URL Not loaded");
+//        }];
 
         if(_imageIndex==_initialIndex && !_isLoaded){
             __imageView.frame = _originalFrameRelativeToScreen;
