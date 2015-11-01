@@ -130,7 +130,7 @@ static const CGFloat kMinImageScale = 1.0f;
 
         }
         __imageView.userInteractionEnabled = YES;
-        [self addPanGestureToView:__imageView];
+//        [self addPanGestureToView:__imageView];
         [self addMultipleGesture];
 
 }

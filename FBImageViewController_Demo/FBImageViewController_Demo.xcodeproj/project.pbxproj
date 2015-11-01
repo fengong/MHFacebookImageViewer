@@ -555,6 +555,7 @@
 		998725261757B000004FDBC5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FBImageViewController_Demo/FBImageViewController_Demo-Prefix.pch";
 				INFOPLIST_FILE = "FBImageViewController_Demo/FBImageViewController_Demo-Info.plist";
@@ -567,6 +568,7 @@
 		998725271757B000004FDBC5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FBImageViewController_Demo/FBImageViewController_Demo-Prefix.pch";
 				INFOPLIST_FILE = "FBImageViewController_Demo/FBImageViewController_Demo-Info.plist";
