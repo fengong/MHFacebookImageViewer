@@ -115,7 +115,7 @@ static const CGFloat kMinImageScale = 1.0f;
                 __imageView.frame = [self centerFrameFromImage:__imageView.image];
                 CGAffineTransform transf = CGAffineTransformIdentity;
                 // Root View Controller - move backward
-                _rootViewController.view.transform = CGAffineTransformScale(transf, 0.95f, 0.95f);
+                _rootViewController.view.transform = CGAffineTransformScale(transf, 1.0f, 1.0f);
                 // Root View Controller - move forward
                 //                _viewController.view.transform = CGAffineTransformScale(transf, 1.05f, 1.05f);
                 _blackMask.alpha = 1;
